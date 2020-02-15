@@ -48,7 +48,7 @@ class App extends Component {
    }
 */
     return copyOfAllFoods;
-  }
+  };
 
   addNewFoodToArray = newFoodObj => {
     // console.log(newFoodObj);
