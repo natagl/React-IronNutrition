@@ -2,69 +2,114 @@ import React, { Component } from "react";
 import "./App.css";
 import "bulma/css/bulma.css";
 import foods from "./foods.json";
-import FoodBox from "./FoodBox";
+import FoodBox from "./components/FoodBox";
+import FoodForm from "./components/FoodFrom";
+import Search from "./components/Search";
+import TodaysFood from "./components/TodaysFood";
+/*
+ let state = {
+     allFoods: [...foods]
+ }
+ let allFoods = [...foods]
+
+function foodBox(arr){
+
+}
+ foodBox(arrayOfAllFoods)
+*/
+
 class App extends Component {
   state = {
-    foods,
-    foodForm: false
+    allFoods: foods,
+    filteredFoods: foods, // the original value fo filteredFoods is going to be the original array in foods.json
+    showForm: false,
+    todayFoodArr: []
   };
 
-  showFoods = () => {
-    let foodList = this.state.foods.map((eachFood, i) => {
-      return <FoodBox key={i} {...eachFood} />;
-    });
-    return foodList;
-  };
-
-  toggleFoodForm = () => {
-    this.setState({
-      foodForm: !this.state.foodForm
-    });
-  };
-
-  handleFormSubmit = e => {
-    e.preventDefault();
-    this.toggleFoodForm();
-    console.log("submit ", this.state);
-    let newFoods = [...this.state.foods];
-    newFoods.unshift({
-      name: this.state.food,
-      calories: null,
-      quantity: 1,
-      image: null
-    });
-
-    this.setState({
-      foods: newFoods
-    });
-  };
-
-  handleInputChange = e => {
-    console.log("change", e.target.name, e.target.value);
-    this.setState({ [e.target.name]: e.target.value }); //food : 'lasagna'
-  };
-
-  showFoodForm = () => {
-    if (this.state.foodForm) {
+  displayFood = () => {
+    let copyOfAllFoods = this.state.filteredFoods.map((eachFood, index) => {
+      // console.log(eachFood)
+      // return(<FoodBox name={eachFood.name} calories={eachFood.calories} image={eachFood.image}/>)
       return (
-        <form onSubmit={this.handleFormSubmit}>
-          <input onChange={this.handleInputChange} type="text" name="food" />
-          <input type="submit" />
-        </form>
+        <FoodBox
+          key={eachFood.name}
+          {...eachFood}
+          addFood={this.addFood}
+          addFoodIndex={index}
+        />
       );
-    } else {
-      return <button onClick={this.toggleFoodForm}>Add New Food</button>;
-    }
+    });
+    /*
+   eachFood= {
+     name: "pizza",
+     image: "pizza.png",
+     calories: 1000,
+     quantity: 1
+   }
+*/
+    return copyOfAllFoods;
+  }
+
+  addNewFoodToArray = newFoodObj => {
+    // console.log(newFoodObj);
+    let copyOfAllFoods = this.state.allFoods.slice();
+    copyOfAllFoods.unshift(newFoodObj);
+    // console.log(copyOfAllFoods);
+    this.setState({
+      allFoods: copyOfAllFoods
+    });
+  };
+
+  handleAddFoodClick = () => {
+    // console.log(this.state.showForm)
+    this.setState({
+      // we use !this.state.showForm so that the form will not show if the button is clicked again
+      // if we just  said showForm: true then we would need to figure out another way to turn showForm back to false to not display the form
+      showForm: !this.state.showForm
+    });
+  };
+
+  filterFoods = searchInput => {
+    // console.log(searchInput);
+    let filteredFoodsCopy = this.state.allFoods.filter(
+      eachFood =>
+        eachFood.name.toLowerCase().includes(searchInput.toLowerCase())
+      /* loop through the array using filter
+       I'm going to look at the name of each food in lowercase format (toLowerCase())
+       if the name of the food includes (i.e. matches) the searchInput in lowerCase format
+       then return that food to the new filteredFoodsCopy
+     */
+    );
+
+    this.setState({
+      filteredFoods: filteredFoodsCopy
+    });
+  };
+
+  addFood = index => {
+    console.log(index);
+    let copyTodayFoodArr = [...this.state.todayFoodArr];
+
+    copyTodayFoodArr.push(this.state.allFoods[index]);
+
+    this.setState({
+      todayFoodArr: copyTodayFoodArr
+    });
   };
 
   render() {
     return (
       <div className="App">
-        <br></br>
-        {this.showFoodForm()}
-        <br></br>
-
-        {this.showFoods()}
+        <Search filterFoods={this.filterFoods} />
+        <button className="button" onClick={this.handleAddFoodClick}>
+          Add Food
+        </button>
+        {/* if(true && true) {show the form }  if(false && true) {do not show form}*/}
+        {this.state.showForm && (
+          <FoodForm addNewFoodToArray={this.addNewFoodToArray} />
+        )}
+        <TodaysFood displayFoodArr={this.state.todayFoodArr} />
+        {this.displayFood()}
       </div>
     );
   }
